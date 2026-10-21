@@ -98,7 +98,7 @@ button:hover{border-color:var(--acc)}
  </div></div>
 
  <div class="panel"><h2>البيانات الأكاديمية</h2><div class="grid">
-  <div class="full"><label>البرنامج</label><select id="prog"></select></div>
+  <div class="full"><label>البرنامج</label><select id="prog"></select><div class="calc" id="ptr" hidden></div></div>
   <div><label>الساعات المعتمدة</label><input id="hours" type="number" min="1"></div>
   <div><label>تاريخ التخرج</label><div class="row"><select id="mon"></select><input id="year" type="number" min="2000" max="2100"></div></div>
   <div><label>مجموع الدرجات</label><input id="marks" type="number" min="0"></div>
@@ -111,6 +111,7 @@ button:hover{border-color:var(--acc)}
 
  <div class="panel"><h2>خيارات الطباعة</h2>
   <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="letter" style="width:auto" checked> الطباعة على ورق رسمي (سيب الهيدر فاضي)</label>
+  <label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin-top:8px"><input type="checkbox" id="showTtl" style="width:auto"> إظهار عنوان «Graduation Certificate» والخطين اللي جنبه</label>
   <p class="hint">لو شلت العلامة، العنوان هيتكتب في الشهادة نفسها. وتقدر تضغط على أي سطر في المعاينة وتعدّله مباشرة قبل الطباعة.</p>
  </div>
 
@@ -140,7 +141,8 @@ const IDS=["name","nid","dob","city","nat","addr","prog","hours","mon","year","m
 let G="auto",ST="reg",OR="eg",cityTouched=true,saved=[],sel=new Set();
 const DEF={name:"MOHAMED KHALED ABO ELHASAN",nid:"30309252700817",dob:"2003-09-25",city:"Luxor",nat:"Egyptian",addr:"Luxor",prog:3,hours:130,mon:4,year:2025,marks:5469,max:6300,grade:"auto",fc:"2025-07-15",uc:"2025-07-31"};
 
-PROGS.forEach((p,i)=>$("prog").add(new Option("Technology of "+p+" Program",i)));
+const AR=["تكنولوجيا التنفس الصناعي","تكنولوجيا المختبرات الطبية","تكنولوجيا البصريات","تكنولوجيا الأشعة والتصوير الطبي","تكنولوجيا الصحة العامة","تكنولوجيا الإدارة والمعلوماتية الصحية","تكنولوجيا الأجهزة الطبية الحيوية","تكنولوجيا صناعة تركيبات الأسنان","تكنولوجيا رسم المخ"];
+PROGS.forEach((p,i)=>$("prog").add(new Option(AR[i]+"  ←  Technology of "+p,i)));
 MON.forEach((m,i)=>$("mon").add(new Option(m,i)));
 
 function words(n){const a=["","ONE","TWO","THREE","FOUR","FIVE","SIX","SEVEN","EIGHT","NINE","TEN","ELEVEN","TWELVE","THIRTEEN","FOURTEEN","FIFTEEN","SIXTEEN","SEVENTEEN","EIGHTEEN","NINETEEN"],t=["","","TWENTY","THIRTY","FORTY","FIFTY","SIXTY","SEVENTY","EIGHTY","NINETY"];
@@ -153,7 +155,7 @@ function toISO(v){if(!v)return"";if(v instanceof Date)return v.getFullYear()+"-"
 function parseID(id){if(!/^[23]\d{13}$/.test(id))return null;const y=(id[0]==="2"?1900:2000)+ +id.slice(1,3);return{dob:y+"-"+id.slice(3,5)+"-"+id.slice(5,7),male:(+id[12])%2===1,gov:GOV[id.slice(7,9)]||""}}
 function gradeOf(p){return p>=85?"Excellent":p>=75?"Very Good":p>=65?"Good":p>=60?"Pass":"Fail"}
 
-function read(){const s={};IDS.forEach(k=>s[k]=$(k).value);["hours","marks","max","year","mon","prog"].forEach(k=>s[k]=+s[k]);s.g=G;s.st=ST;s.or=OR;s.letter=$("letter").checked;return s}
+function read(){const s={};IDS.forEach(k=>s[k]=$(k).value);["hours","marks","max","year","mon","prog"].forEach(k=>s[k]=+s[k]);s.g=G;s.st=ST;s.or=OR;s.letter=$("letter").checked;s.ttl=$("showTtl").checked;return s}
 function write(s){IDS.forEach(k=>$(k).value=s[k]??"");G=s.g||"auto";ST=s.st||"reg";OR=s.or||"eg";seg();}
 function seg(){document.querySelectorAll("#gseg button").forEach(b=>b.classList.toggle("on",b.dataset.g===G));document.querySelectorAll("#sseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===ST));document.querySelectorAll("#oseg button").forEach(b=>b.classList.toggle("on",b.dataset.o===OR));$("nl").textContent=OR==="fw"?"رقم جواز السفر":"الرقم القومي (بيملّا النوع وتاريخ الميلاد تلقائي)"}
 function male(s){if(s.g==="m")return true;if(s.g==="f")return false;const p=s.or==="fw"?null:parseID(s.nid);return p?p.male:true}
@@ -163,7 +165,7 @@ function cert(s){
  const lh=s.letter?'<div class="lh blank">منطقة الهيدر الرسمي (مش هتتطبع)</div>':'<div class="lh">Beni-Suef University<br>Faculty of Applied Health Sciences Technology</div>';
  const f=(l,v,w)=>`<div class="f${w?" w":""}"><small>${l}</small><b contenteditable>${v||"—"}</b></div>`;
  return `${lh}
- <div class="ttl" contenteditable>Graduation Certificate</div>
+ ${s.ttl?'<div class="ttl" contenteditable>Graduation Certificate</div>':""}
  <div class="int" contenteditable>The Faculty of Applied Health Sciences Technology – Beni-Suef University certifies that</div>
  <div class="nm" contenteditable>${M?"Mr.":"Ms."} ${s.name||"—"}</div>
  <div class="led">${f(s.or==="fw"?"Passport No.":"ID",s.nid)}${f("Date of Birth",fd(s.dob))}${f("City",s.city)}${f("Nationality",s.nat)}${f("Address",s.addr,1)}${f("Department","Technology of "+PROGS[s.prog]+" Program"+(s.st==="sp"?" (Special Program)":""),1)}</div>
@@ -195,6 +197,7 @@ function certOld(s){
 
 function render(){
  const s=read(),pct=s.max?s.marks/s.max*100:0,gr=s.grade==="auto"?gradeOf(pct):s.grade,p=s.or==="fw"?null:parseID(s.nid);
+ if($("ptr"))$("ptr").innerHTML=`<span style="font-size:12px;color:var(--mute)">الترجمة اللي هتظهر في الشهادة</span><br><b>${AR[s.prog]}${s.st==="sp"?" (برنامج خاص)":""}</b><span dir="ltr" style="display:block;text-align:left;font-family:'EB Garamond',serif;font-size:15px">Technology of ${PROGS[s.prog]} Program${s.st==="sp"?" (Special Program)":""}</span>`;
  $("calc").innerHTML=`النسبة: <b>${pct.toFixed(2)}%</b> · التقدير: <b>${gr}</b>${p?` · النوع من الرقم القومي: <b>${p.male?"ذكر":"أنثى"}</b>`:""}${pct<60?' <span style="color:var(--warn)">(أقل من حد النجاح 60%)</span>':""}`;
  $("sheet").innerHTML=cert(s);fit()}
 function fit(){const w=$("wrap").clientWidth,k=Math.min(1,w/794);$("scaler").style.transform=`scale(${k})`;$("wrap").style.height=1123*k+"px"}
@@ -204,7 +207,7 @@ IDS.forEach(k=>$(k).addEventListener("input",()=>{
  if(k==="city")cityTouched=true;
  if(k==="nid"){const p=OR==="eg"?parseID($("nid").value):null;if(p){$("dob").value=p.dob;if(!cityTouched&&p.gov)$("city").value=p.gov}}
  render()}));
-$("letter").onchange=render;
+$("letter").onchange=$("showTtl").onchange=render;
 $("gseg").onclick=e=>{if(e.target.dataset.g){G=e.target.dataset.g;seg();render()}};
 $("sseg").onclick=e=>{if(e.target.dataset.s){ST=e.target.dataset.s;seg();render()}};
 $("oseg").onclick=e=>{const o=e.target.dataset.o;if(!o)return;OR=o;if(o==="fw"){if($("nat").value==="Egyptian")$("nat").value="";if(G==="auto")G="m"}else if(!$("nat").value)$("nat").value="Egyptian";seg();render()};
