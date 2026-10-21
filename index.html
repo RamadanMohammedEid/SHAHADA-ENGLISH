@@ -89,7 +89,7 @@ button:hover{border-color:var(--acc)}
 
  <div class="panel"><h2>بيانات الخريج</h2><div class="grid">
   <div><label>نوع الدراسة</label><div class="seg" id="sseg"><button data-s="reg" class="on">نظامي</button><button data-s="sp">برنامج خاص</button></div></div><div><label>الطالب</label><div class="seg" id="oseg"><button data-o="eg" class="on">مصري</button><button data-o="fw">وافد</button></div></div><div class="full"><label>الاسم بالإنجليزي</label><input id="name" dir="ltr" placeholder="MOHAMED KHALED ABO ELHASAN"></div>
-  <div class="full"><label id="nl">الرقم القومي (بيملّا النوع وتاريخ الميلاد تلقائي)</label><input id="nid" dir="ltr" maxlength="20"></div>
+  <div class="full"><label id="nl">الرقم القومي (بيملّا النوع وتاريخ الميلاد والمدينة والعنوان تلقائي)</label><input id="nid" dir="ltr" maxlength="20"></div>
   <div><label>النوع</label><div class="seg" id="gseg"><button data-g="auto" class="on">تلقائي</button><button data-g="m">ذكر</button><button data-g="f">أنثى</button></div></div>
   <div><label>تاريخ الميلاد</label><input id="dob" type="date"></div>
   <div><label>المدينة</label><input id="city" dir="ltr"></div>
@@ -156,8 +156,8 @@ function parseID(id){if(!/^[23]\d{13}$/.test(id))return null;const y=(id[0]==="2
 function gradeOf(p){return p>=85?"Excellent":p>=75?"Very Good":p>=65?"Good":p>=60?"Pass":"Fail"}
 
 function read(){const s={};IDS.forEach(k=>s[k]=$(k).value);["hours","marks","max","year","mon","prog"].forEach(k=>s[k]=+s[k]);s.g=G;s.st=ST;s.or=OR;s.letter=$("letter").checked;s.ttl=$("showTtl").checked;return s}
-function write(s){IDS.forEach(k=>$(k).value=s[k]??"");G=s.g||"auto";ST=s.st||"reg";OR=s.or||"eg";seg();}
-function seg(){document.querySelectorAll("#gseg button").forEach(b=>b.classList.toggle("on",b.dataset.g===G));document.querySelectorAll("#sseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===ST));document.querySelectorAll("#oseg button").forEach(b=>b.classList.toggle("on",b.dataset.o===OR));$("nl").textContent=OR==="fw"?"رقم جواز السفر":"الرقم القومي (بيملّا النوع وتاريخ الميلاد تلقائي)"}
+function write(s){IDS.forEach(k=>$(k).value=s[k]??"");G=s.g||"auto";ST=s.st||"reg";OR=s.or||"eg";{const q=parseID(s.nid);window._ag=q?q.gov:""}seg();}
+function seg(){document.querySelectorAll("#gseg button").forEach(b=>b.classList.toggle("on",b.dataset.g===G));document.querySelectorAll("#sseg button").forEach(b=>b.classList.toggle("on",b.dataset.s===ST));document.querySelectorAll("#oseg button").forEach(b=>b.classList.toggle("on",b.dataset.o===OR));$("nl").textContent=OR==="fw"?"رقم جواز السفر":"الرقم القومي (بيملّا النوع وتاريخ الميلاد والمدينة والعنوان تلقائي)"}
 function male(s){if(s.g==="m")return true;if(s.g==="f")return false;const p=s.or==="fw"?null:parseID(s.nid);return p?p.male:true}
 
 function cert(s){
@@ -205,7 +205,7 @@ addEventListener("resize",fit);
 
 IDS.forEach(k=>$(k).addEventListener("input",()=>{
  if(k==="city")cityTouched=true;
- if(k==="nid"){const p=OR==="eg"?parseID($("nid").value):null;if(p){$("dob").value=p.dob;if(!cityTouched&&p.gov)$("city").value=p.gov}}
+ if(k==="nid"){const p=OR==="eg"?parseID($("nid").value):null;if(p){$("dob").value=p.dob;if(p.gov){const a=window._ag||"";["city","addr"].forEach(x=>{if(!$(x).value||$(x).value===a)$(x).value=p.gov});window._ag=p.gov}}}
  render()}));
 $("letter").onchange=$("showTtl").onchange=render;
 $("gseg").onclick=e=>{if(e.target.dataset.g){G=e.target.dataset.g;seg();render()}};
